@@ -1,0 +1,161 @@
+---
+title       : Live Clinical Trials by Medical Condition
+subtitle    : Version 1.0
+author      : Gary Chung
+job         : Explorer  
+framework   : revealjs        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : zenburn      # 
+revealjs    :
+  theme : simple
+  transition : linear
+bootstrap   :
+  theme : amelia
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+
+
+---
+
+## How many diabetes clinical <br> trials are in my local area?
+<br>
+# Let's find out.
+<br><br>
+<small> A short story by [Gary Chung](http://gary-chung.com) / [@gunkadoodah](http://twitter.com/gunkadoodah) </small>
+
+
+--- ds:global &vertical
+
+## Click on Search...
+
+<a href="#" class="image navigate-down">
+  <img width="440" height="250" 
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state2.tiff" alt="Search for diabetes">
+</a>
+
+Hey!<br><br>
+Go down.<br>
+&#9660;
+
+*** ds:soothe
+
+## That's a cool map!
+### So what happens if I click on Dallas, TX?
+
+&#9660;
+
+<a href="#" class="image navigate-down">
+  <img
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state3.tiff" alt="A map of the U.S.">
+</a>
+
+
+
+*** ds:alert
+
+## 19 trials in my hometown? <br> Interesting.
+Okay, let's move on &#9654;
+
+<a href="#" class="image navigate-next">
+  <img
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state4.png" alt="Hover over Dallas">
+</a>
+
+
+---
+
+## How It Works
+
+Query [ClinicalTrials.gov](http://clinicaltrials.gov) by the search term and parameters. The [XML package](http://cran.r-project.org/web/packages/XML) is required.
+```{r eval=FALSE}
+xml.url <- paste("http://clinicaltrials.gov/ct2/results?cond=", 
+   URLencode(inputQ, reserved=TRUE),"&pg=",pageNum,
+   "&recr=Open&no_unk=Y&flds=k&cntry1=NA%3AUS&displayxml=true", sep="") 
+```
+
+After processing this a bit, get the list of cities and states for each clinical trial returned.
+```{r eval=FALSE}
+xml.url <- paste("http://clinicaltrials.gov/ct2/show/",nctid,
+   "?id=",nctid,"&displayxml=true",sep="")
+# <more code to extract city and state from each trial child node>
+```
+
+Pass a data frame of cities and states, counted using the `table()` function, to Google GeoChart from the [googleVis package](http://cran.r-project.org/web/packages/googleVis).
+```{r eval=FALSE}
+gvisGeoChart(CityStateCountry,locationvar="locationCSC",sizevar="Trials",
+   options=list(displayMode="markers",resolution="metros",
+  width=800,height=500,region="US")
+```
+
+
+--- 
+
+## A Running Example
+### A table of cities for the first acne trial found on ClinicalTrials.gov
+<br>
+```{r echo=FALSE, message=FALSE}
+if (!require(XML)) install.packages("XML")
+# Take the query and return a list of NCTs and the search count.
+  assembleUrl <- function(inputQ) {
+    # Save the URL of the xml file in a variable
+    xml.url <- paste("http://clinicaltrials.gov/ct2/results?cond=", URLencode(inputQ, reserved=TRUE),
+                     "&count=1&recr=Open&no_unk=Y&flds=k&cntry1=NA%3AUS&displayxml=true", sep="") 
+    # Use the xmlTreeParse function to parse xml file directly from the web
+    xmlfile <- xmlTreeParse(xml.url, useInternalNodes=TRUE, ignoreBlanks=F)
+    # Save the search count
+    searchCt <- as.numeric(xmlAttrs(xmlRoot(xmlfile)))
+    # Remove the first element, which is the search parameter parent node
+    xmltop = xmlRoot(xmlfile)[-1] 
+    # Extract out all the XML values from the child nodes
+    temp <- lapply(xmltop, function(x) t(xmlSApply(x,xmlValue)))
+    # Converts into a data frame
+    temp2 <- data.frame(matrix(unlist(temp), ncol=8, byrow=T)) 
+    # Adds back in the names of the columns
+    names(temp2)<-dimnames(temp[[1]])[[2]] 
+    
+    return(list("NCTs"=as.vector(temp2$nct_id),"searchCount"=searchCt))
+    
+  }
+
+# Get the list of city, state, countries from the list of NCTs from the assembleUrl function.
+  getCSC <- function(nctid) {
+    # Create the URL for the trial and extract the XML contents
+    xml.url <- paste("http://clinicaltrials.gov/ct2/show/",nctid,"?id=",nctid,"&displayxml=true",sep="")
+    xmlfile <- xmlTreeParse(xml.url, useInternalNodes=TRUE, ignoreBlanks=F)
+    xmltop = xmlRoot(xmlfile)
+    
+    # From the list of locations within the trial, extract the city, state, and country
+    csc <- data.frame(cbind(
+      Country=unlist(lapply(xmltop["location"], function(x) xmlValue(x[["facility"]][["address"]][["country"]]))),
+      State=unlist(lapply(xmltop["location"], function(x) xmlValue(x[["facility"]][["address"]][["state"]]))),  
+      City=unlist(lapply(xmltop["location"], function(x) xmlValue(x[["facility"]][["address"]][["city"]])))
+    ), row.names=NULL)
+  
+    # Filter out any countries other than the U.S., which will still occur for multi-national studies.
+    csc <- subset(csc,csc$Country=="United States")
+    
+    return(csc)
+  }
+```
+
+```{r eval=TRUE}
+results <- assembleUrl("Acne")
+getCSC(results$NCTs)
+```
+<em>As of September 19, 2014...</em><br>
+The first trial is running in six cities in North Carolina.<br><br>
+The actual application returns results for 20 trials at a time.
+
+
+---
+## See the Live App Here
+[gchung.shinyapps.io/Coursera09/](https://gchung.shinyapps.io/Coursera09/) | [Github](https://github.com/gunkadoodah/clinTrials-byCondition.git)
+<br><br>
+<small>
+### Attribution and Credit
+The data source for this application is [ClinicalTrials.gov](www.clinicaltrials.gov). The mapping and geolocation services are provided by [Google Charts API](https://google-developers.appspot.com/chart/). Application hosting thanks to [R Studio](http://www.rstudio.com/) and [ShinyApps](https://www.shinyapps.io).
+<br><br>
+### Authorship
+[Gary Chung](http://gary-chung.com) | [@gunkadoodah](http://twitter.com/gunkadoodah)
+</small>

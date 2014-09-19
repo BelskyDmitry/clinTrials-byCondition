@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Live Clinical Trials by Medical Condition</title>
+  <meta name="description" content="">
+  <meta name="author" content="Gary Chung">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="libraries/frameworks/revealjs/css/reveal.min.css">
+  <link rel="stylesheet" href="libraries/frameworks/revealjs/css/theme/simple.css" id="theme">
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/zenburn.css" id="theme">
+  <!--[if lt IE 9]>
+  <script src="lib/js/html5shiv.js"></script>
+  <![endif]-->  <link rel="stylesheet" href = "assets/css/ribbons.css">
+
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class='' data-state='' id='slide-1'>
+  <h2>How many diabetes clinical <br> trials are in my local area?</h2>
+  <p><br></p>
+
+<h1>Let&#39;s find out.</h1>
+
+<p><br><br>
+<small> A short story by <a href="http://gary-chung.com">Gary Chung</a> / <a href="http://twitter.com/gunkadoodah">@gunkadoodah</a> </small></p>
+
+</section>
+<section>
+   <section class='' data-state='global'>
+    <h2>Click on Search...</h2>
+    <p><a href="#" class="image navigate-down">
+  <img width="440" height="250" 
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state2.tiff" alt="Search for diabetes">
+</a></p>
+
+<p>Hey!<br><br>
+Go down.<br>
+&#9660;</p>
+
+    <aside class='notes'>
+      
+    </aside>
+   </section>
+   <section class='' data-state='soothe'>
+    <h2>That&#39;s a cool map!</h2>
+
+<h3>So what happens if I click on Dallas, TX?</h3>
+
+<p>&#9660;</p>
+
+<p><a href="#" class="image navigate-down">
+  <img
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state3.tiff" alt="A map of the U.S.">
+</a></p>
+
+    <aside class='notes'>
+      
+    </aside>
+   </section>
+   <section class='' data-state='alert'>
+    <h2>19 trials in my hometown? <br> Interesting.</h2>
+
+<p>Okay, let&#39;s move on &#9654;</p>
+
+<p><a href="#" class="image navigate-next">
+  <img
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state4.png" alt="Hover over Dallas">
+</a></p>
+
+    <aside class='notes'>
+      
+    </aside>
+   </section>
+</section>
+<section class='' data-state='' id='slide-3'>
+  <h2>How It Works</h2>
+  <p>Query <a href="http://clinicaltrials.gov">ClinicalTrials.gov</a> by the search term and parameters. The <a href="http://cran.r-project.org/web/packages/XML">XML package</a> is required.</p>
+
+<pre><code class="r">xml.url &lt;- paste(&quot;http://clinicaltrials.gov/ct2/results?cond=&quot;, 
+   URLencode(inputQ, reserved=TRUE),&quot;&amp;pg=&quot;,pageNum,
+   &quot;&amp;recr=Open&amp;no_unk=Y&amp;flds=k&amp;cntry1=NA%3AUS&amp;displayxml=true&quot;, sep=&quot;&quot;) 
+</code></pre>
+
+<p>After processing this a bit, get the list of cities and states for each clinical trial returned.</p>
+
+<pre><code class="r">xml.url &lt;- paste(&quot;http://clinicaltrials.gov/ct2/show/&quot;,nctid,
+   &quot;?id=&quot;,nctid,&quot;&amp;displayxml=true&quot;,sep=&quot;&quot;)
+# &lt;more code to extract city and state from each trial child node&gt;
+</code></pre>
+
+<p>Pass a data frame of cities and states, counted using the <code>table()</code> function, to Google GeoChart from the <a href="http://cran.r-project.org/web/packages/googleVis">googleVis package</a>.</p>
+
+<pre><code class="r">gvisGeoChart(CityStateCountry,locationvar=&quot;locationCSC&quot;,sizevar=&quot;Trials&quot;,
+   options=list(displayMode=&quot;markers&quot;,resolution=&quot;metros&quot;,
+  width=800,height=500,region=&quot;US&quot;)
+</code></pre>
+
+</section>
+<section class='' data-state='' id='slide-4'>
+  <h2>A Running Example</h2>
+  <h3>A table of cities for the first acne trial found on ClinicalTrials.gov</h3>
+
+<p><br></p>
+
+<pre><code class="r">results &lt;- assembleUrl(&quot;Acne&quot;)
+getCSC(results$NCTs)
+</code></pre>
+
+<pre><code>##         Country          State         City
+## 1 United States North Carolina      Concord
+## 2 United States North Carolina      Concord
+## 3 United States North Carolina     Davidson
+## 4 United States North Carolina   Harrisburg
+## 5 United States North Carolina Huntersville
+## 6 United States North Carolina   Kannapolis
+</code></pre>
+
+<p><em>As of September 19, 2014...</em><br>
+The first trial is running in six cities in North Carolina.<br><br>
+The actual application returns results for 20 trials at a time.</p>
+
+</section>
+<section class='' data-state='' id='slide-5'>
+  <h2>See the Live App Here</h2>
+  <p><a href="https://gchung.shinyapps.io/Coursera09/">gchung.shinyapps.io/Coursera09/</a> | <a href="https://github.com/gunkadoodah/clinTrials-byCondition.git">Github</a>
+<br><br>
+<small></p>
+
+<h3>Attribution and Credit</h3>
+
+<p>The data source for this application is <a href="www.clinicaltrials.gov">ClinicalTrials.gov</a>. The mapping and geolocation services are provided by <a href="https://google-developers.appspot.com/chart/">Google Charts API</a>. Application hosting thanks to <a href="http://www.rstudio.com/">R Studio</a> and <a href="https://www.shinyapps.io">ShinyApps</a>.
+<br><br></p>
+
+<h3>Authorship</h3>
+
+<p><a href="http://gary-chung.com">Gary Chung</a> | <a href="http://twitter.com/gunkadoodah">@gunkadoodah</a>
+</small></p>
+
+</section>
+    </div>
+  </div>
+</body>
+  <script src="libraries/frameworks/revealjs/lib/js/head.min.js"></script>
+  <script src="libraries/frameworks/revealjs/js/reveal.min.js"></script>
+  <script>
+  // Full list of configuration options available here:
+  // https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    center: true,
+    theme: Reveal.getQueryHash().theme || 'simple', 
+    transition: Reveal.getQueryHash().transition || 'linear', 
+    dependencies: [
+    // Cross-browser shim that fully implements classList -
+    // https://github.com/eligrey/classList.js/
+      { src: 'libraries/frameworks/revealjs/lib/js/classList.js', condition: function() { return !document.body.classList;}},
+      // Zoom in and out with Alt+click
+      { src: 'libraries/frameworks/revealjs/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      // Speaker notes
+      { src: 'libraries/frameworks/revealjs/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+      // Remote control your reveal.js presentation using a touch device
+      //{ src: 'libraries/frameworks/revealjs/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+      ]
+  });
+  </script>  <!-- LOAD HIGHLIGHTER JS FILES -->
+<script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<!-- DONE LOADING HIGHLIGHTER JS FILES -->
+ 
+
+</html>
