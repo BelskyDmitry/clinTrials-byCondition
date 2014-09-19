@@ -2,7 +2,8 @@
   if (!require(XML)) install.packages("XML")
   if (!require(shiny)) install.packages("shiny")
   if (!require(googleVis)) install.packages("googleVis")
-  library(XML); library(shiny); library(googleVis)
+  if (!require(shinyapps)) install.packages("shinyapps")
+  library(XML); library(shiny); library(googleVis); library(shinyapps)
 
 shinyServer(function(input, output) {  
   
