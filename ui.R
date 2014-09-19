@@ -1,3 +1,5 @@
+library(shiny); library(shinyapps)
+
 shinyUI(fluidPage(theme="bootstrap.css",
 
   # Application title

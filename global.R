@@ -40,26 +40,3 @@
     
     return(csc)
   }
-  
-  # Take the query and return a list of NCTs and the search count.
-  assembleUrl <- function(inputQ) {
-    # Save the URL of the xml file in a variable
-    xml.url <- paste("http://clinicaltrials.gov/ct2/results?cond=", URLencode(inputQ, reserved=TRUE),
-                     "&count=1&recr=Open&no_unk=Y&flds=k&cntry1=NA%3AUS&displayxml=true", sep="") 
-    # Use the xmlTreeParse function to parse xml file directly from the web
-    xmlfile <- xmlTreeParse(xml.url, useInternalNodes=TRUE, ignoreBlanks=F)
-    # Save the search count
-    searchCt <- as.numeric(xmlAttrs(xmlRoot(xmlfile)))
-    # Remove the first element, which is the search parameter parent node
-    xmltop = xmlRoot(xmlfile)[-1] 
-    # Extract out all the XML values from the child nodes
-    temp <- lapply(xmltop, function(x) t(xmlSApply(x,xmlValue)))
-    # Converts into a data frame
-    temp2 <- data.frame(matrix(unlist(temp), ncol=8, byrow=T)) 
-    # Adds back in the names of the columns
-    names(temp2)<-dimnames(temp[[1]])[[2]] 
-    
-    return(list("NCTs"=as.vector(temp2$nct_id),"searchCount"=searchCt))
-    
-  }
-  
