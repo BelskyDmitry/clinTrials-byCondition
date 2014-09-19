@@ -31,7 +31,7 @@ knit        : slidify::knit2slides
 
 <a href="#" class="image navigate-down">
   <img width="440" height="250" 
-    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state2.tiff" alt="Search for diabetes">
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state2.png" alt="Search for diabetes">
 </a>
 
 Hey!<br><br>
@@ -47,7 +47,7 @@ Go down.<br>
 
 <a href="#" class="image navigate-down">
   <img
-    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state3.tiff" alt="A map of the U.S.">
+    src="https://dl.dropboxusercontent.com/u/3991613/cthc/cthc_state3.png" alt="A map of the U.S.">
 </a>
 
 
